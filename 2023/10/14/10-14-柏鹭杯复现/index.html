@@ -27,20 +27,20 @@
 <meta property="og:site_name" content="hh">
 <meta property="og:description" content="柏鹭杯wp">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014224841380.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225629756.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225725674.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225800414.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014231226681.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225823606.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225848157.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014225907584.png">
-<meta property="og:image" content="e:\build_blog\picture\ctf\image-20231014232631720.png">
+<meta property="og:image" content="http://example.com/images/image-20231014224841380.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225629756.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225725674.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225800414.png">
+<meta property="og:image" content="http://example.com/images/image-20231014231226681.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225823606.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225848157.png">
+<meta property="og:image" content="http://example.com/images/image-20231014225907584.png">
+<meta property="og:image" content="http://example.com/images/image-20231014232631720.png">
 <meta property="article:published_time" content="2023-10-14T11:29:38.191Z">
-<meta property="article:modified_time" content="2023-10-14T17:44:32.067Z">
+<meta property="article:modified_time" content="2023-10-15T03:54:44.010Z">
 <meta property="article:author" content="hh">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="e:\build_blog\picture\ctf\image-20231014224841380.png">
+<meta name="twitter:image" content="http://example.com/images/image-20231014224841380.png">
 
 <link rel="canonical" href="http://example.com/2023/10/14/10-14-%E6%9F%8F%E9%B9%AD%E6%9D%AF%E5%A4%8D%E7%8E%B0/">
 
@@ -191,7 +191,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-10-15 01:44:32" itemprop="dateModified" datetime="2023-10-15T01:44:32+08:00">2023-10-15</time>
+                <time title="修改时间：2023-10-15 11:54:44" itemprop="dateModified" datetime="2023-10-15T11:54:44+08:00">2023-10-15</time>
               </span>
 
           
@@ -221,7 +221,7 @@
 <ul>
 <li>原题是linux环境，我本地是windows环境复现的，所以后面绕过会有一点区别</li>
 </ul>
-<p><img src="E:\build_blog\picture\ctf\image-20231014224841380.png" alt="image-20231014224841380"></p>
+<p><img src="/images/image-20231014224841380.png" alt="image-20231014224841380"></p>
 <p>在<code>file</code>参数这里尝试读取文件 &#x2F;etc&#x2F;passwd,  &#x2F;etc&#x2F;self&#x2F;cmdline,  原题应该是通过 &#x2F;etc&#x2F;self&#x2F;environ  找到flag位置的，在&#x2F;server&#x2F;flag.txt  (这里没有环境，就不复现了)</p>
 <ul>
 <li>通过test.js，尝试能否正常读取flag</li>
@@ -231,32 +231,32 @@
 <h3 id="debug调试"><a href="#debug调试" class="headerlink" title="debug调试"></a>debug调试</h3><ul>
 <li>进入fs.readFileSyn</li>
 </ul>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225629756.png" alt="image-20231014225629756"></p>
+<p><img src="/images/image-20231014225629756.png" alt="image-20231014225629756"></p>
 <ul>
 <li>变量<code>path</code>就是file参数的值，注意它的走向</li>
 </ul>
 <p><code>getoptions</code>获取参数 r，isUserFd 为true,直接返回path，这里是进入了fs.openSync</p>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225725674.png" alt="image-20231014225725674"></p>
+<p><img src="/images/image-20231014225725674.png" alt="image-20231014225725674"></p>
 <ul>
 <li><code>getValidatePath</code>通过名字看，应该是判断path是否有效，</li>
 </ul>
 <p>跳过看看返回什么结果，返回了path值，进入<code>getValidatePath</code>,看是如何处理的</p>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225800414.png" alt="image-20231014225800414"></p>
-<p><img src="E:\build_blog\picture\ctf\image-20231014231226681.png" alt="image-20231014231226681"></p>
+<p><img src="/images/image-20231014225800414.png" alt="image-20231014225800414"></p>
+<p><img src="/images/image-20231014231226681.png" alt="image-20231014231226681"></p>
 <ul>
 <li>进入<code>toPathIfFileURL</code></li>
 </ul>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225823606.png" alt="image-20231014225823606"></p>
+<p><img src="/images/image-20231014225823606.png" alt="image-20231014225823606"></p>
 <ul>
 <li>当<code>fileURLOrPath.href</code>，<code>fileURLOrPath.origin</code> 为true是才会进入下面的<code>fileURLToPath</code></li>
 </ul>
 <p><code>构造点一</code> href&#x3D;1，origin&#x3D;1</p>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225848157.png" alt="image-20231014225848157"></p>
+<p><img src="/images/image-20231014225848157.png" alt="image-20231014225848157"></p>
 <ul>
 <li>进入<code>fileURLToPath</code>，path.protocol !&#x3D;&#x3D; ‘file:’结果必须为flase</li>
 </ul>
 <p><code>构造点二</code> protocol &#x3D;&#x3D; file</p>
-<p><img src="E:\build_blog\picture\ctf\image-20231014225907584.png" alt="image-20231014225907584"></p>
+<p><img src="/images/image-20231014225907584.png" alt="image-20231014225907584"></p>
 <ul>
 <li>由于是windows环境，所以进入getPathFromURLWin32函数，这里贴一下代码</li>
 </ul>
@@ -268,7 +268,7 @@
 <ul>
 <li>如果不设置hostname，则最后返回的值为 ‘\undefined E:\flag.txt’</li>
 </ul>
-<p><img src="E:\build_blog\picture\ctf\image-20231014232631720.png" alt="image-20231014232631720"></p>
+<p><img src="/images/image-20231014232631720.png" alt="image-20231014232631720"></p>
 <p>最后,绕过下面的代码, letter是将pathname第二个字符转化为ascii码值，sep则获取pathname第三个字符，</p>
 <p>这里要绕过的话，加个空格就好了<code>pathname= E:\\flag.txt</code> </p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> letter = pathname.<span class="title function_">codePointAt</span>(<span class="number">1</span>) | <span class="number">0x20</span>;</span><br><span class="line">  <span class="keyword">const</span> sep = pathname[<span class="number">2</span>];</span><br><span class="line">  <span class="keyword">if</span> (letter &lt; <span class="variable constant_">CHAR_LOWERCASE_A</span> || letter &gt; <span class="variable constant_">CHAR_LOWERCASE_Z</span> ||   <span class="comment">// a..z A..Z</span></span><br><span class="line">      (sep !== <span class="string">&#x27;:&#x27;</span>)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title function_">ERR_INVALID_FILE_URL_PATH</span>(<span class="string">&#x27;must be absolute&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pathname.<span class="title function_">slice</span>(<span class="number">1</span>);  <span class="comment">//slice(1)截取字符串，如果传入pathname=E:\\flag.txt,则返回:\\flag.txt</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
