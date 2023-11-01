@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在teamserver通信调试中，记录一下遇到的问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cs调试及teamserver通信问题总结">
+<meta property="og:url" content="http://example.com/2023/11/01/1031-cs%E8%B0%83%E8%AF%95%E5%8F%8Ateamserver%E9%80%9A%E4%BF%A1%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="hh">
+<meta property="og:description" content="在teamserver通信调试中，记录一下遇到的问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/11/01/1031-cs%E8%B0%83%E8%AF%95%E5%8F%8Ateamserver%E9%80%9A%E4%BF%A1%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/images/1031/1101-cs-1.png">
+<meta property="og:image" content="http://example.com/images/1031/1101-cs-2.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-1.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-2.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-3.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-6.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-4.png">
+<meta property="og:image" content="e:\1nodes\images\1031-cs-5.png">
+<meta property="og:image" content="http://example.com/images/1031/1031-cs-7.png">
+<meta property="article:published_time" content="2023-11-01T11:38:39.444Z">
+<meta property="article:modified_time" content="2023-11-01T11:41:13.353Z">
+<meta property="article:author" content="hh">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/11/01/1031-cs%E8%B0%83%E8%AF%95%E5%8F%8Ateamserver%E9%80%9A%E4%BF%A1%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/images/1031/1101-cs-1.png">
+
+<link rel="canonical" href="http://example.com/2023/11/01/1031-cs%E8%B0%83%E8%AF%95%E5%8F%8Ateamserver%E9%80%9A%E4%BF%A1%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cs调试及teamserver通信问题总结 | hh</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hh</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">小白</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">7</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/01/1031-cs%E8%B0%83%E8%AF%95%E5%8F%8Ateamserver%E9%80%9A%E4%BF%A1%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/th.jpg">
+      <meta itemprop="name" content="hh">
+      <meta itemprop="description" content="hh">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hh">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cs调试及teamserver通信问题总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-11-01 19:38:39 / 修改时间：19:41:13" itemprop="dateCreated datePublished" datetime="2023-11-01T19:38:39+08:00">2023-11-01</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在teamserver通信调试中，记录一下遇到的问题。</p>
+<span id="more"></span>
+
+
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><ul>
+<li>所有打断点的java文件都必须放到src目录下，不然不会跳到断点处。</li>
+</ul>
+<p>src目录下需要放的文件，大概如下</p>
+<img src="images/1031/1101-cs-1.png" alt="1101-cs-1" style="zoom: 67%;" />
+
+<ul>
+<li>对于teamserver的调试可能出问题的地方，vmoptions参数</li>
+</ul>
+<p><img src="/images/1031/1101-cs-2.png" alt="1101-cs-2"></p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:ParallelGCThreads=<span class="number">4</span> -Dcobaltstrike.server_port=<span class="number">22222</span> -Dcobaltstrike.server_bindto=<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span> -Djavax.<span class="built_in">net</span>.ssl.keyStore=&quot;E:\cs4.<span class="number">4</span>\CobaltScrike_4.<span class="number">1</span>_reverse\out\artifacts\CobaltScrike_4_1_reverse_jar\cobaltstrike.store&quot; -Djavax.<span class="built_in">net</span>.ssl.keyStorePassword=<span class="number">111111</span> -server -XX:+AggressiveHeap -XX:+UseParallelGC -Duser.language=en</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成证书</li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keytool -keystore ./cobaltstrike.store -storepass <span class="number">111111</span> -keypass <span class="number">111111</span> -genkey -keyalg RSA -alias cobaltstrike -dname &quot;CN=Major Cobalt Strike, OU=AdvancedPenTesting, O=cobaltstrike, L=Somewhere, S=Cyberspace, C=Earth&quot;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>命令行启动teamserver或者client命令</li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- client</span><br><span class="line">java -XX:ParallelGCThreads=<span class="number">4</span> -XX:+AggressiveHeap -XX:+UseParallelGC -Duser.language=en -jar CobaltScrike_4.<span class="number">1</span>_reverse.jar</span><br><span class="line"></span><br><span class="line">- server</span><br><span class="line">java -XX:ParallelGCThreads=<span class="number">4</span> -Dcobaltstrike.server_port=<span class="number">22222</span> -Dcobaltstrike.server_bindto=<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">0</span> -Djavax.<span class="built_in">net</span>.ssl.keyStore=./cobaltstrike.store -Djavax.<span class="built_in">net</span>.ssl.keyStorePassword=<span class="number">111111</span> -server -XX:+AggressiveHeap -XX:+UseParallelGC -classpath ./CobaltScrike_4.<span class="number">1</span>_reverse.jar -Duser.language=en server.TeamServer <span class="number">192</span>.<span class="number">168</span>.<span class="number">139</span>.<span class="number">14</span> <span class="number">111111</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="cs-登陆通信分析"><a href="#cs-登陆通信分析" class="headerlink" title="cs 登陆通信分析"></a>cs 登陆通信分析</h2><h3 id="teamserver端"><a href="#teamserver端" class="headerlink" title="teamserver端"></a>teamserver端</h3><p>入口函数<code>server.TeamServer.Authorization()</code>，这个还没看懂，感觉是<code>cobaltstrike.auth</code>有关，这个文件是干嘛的我也不清楚</p>
+<p><img src="/images/1031/1031-cs-1.png" alt="1031-cs-1"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">Authorization</span><span class="params">()</span> &#123;</span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="type">byte</span>[] decrypt = <span class="keyword">new</span> <span class="title class_">byte</span>[]&#123;<span class="number">1</span>, -<span class="number">55</span>, -<span class="number">61</span>, <span class="number">127</span>, <span class="number">102</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">100</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">27</span>, -<span class="number">27</span>, -<span class="number">66</span>, <span class="number">82</span>, -<span class="number">58</span>, <span class="number">37</span>, <span class="number">92</span>, <span class="number">51</span>, <span class="number">85</span>, -<span class="number">114</span>, -<span class="number">118</span>, <span class="number">28</span>, -<span class="number">74</span>, <span class="number">103</span>, -<span class="number">53</span>, <span class="number">6</span>&#125;;</span><br><span class="line">      <span class="type">DataParser</span> <span class="variable">dataParser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DataParser</span>(decrypt);</span><br><span class="line">      dataParser.big();</span><br><span class="line">      <span class="type">int</span> <span class="variable">int1</span> <span class="operator">=</span> dataParser.readInt();</span><br><span class="line">      <span class="built_in">this</span>.watermark = dataParser.readInt();</span><br><span class="line">      <span class="keyword">if</span> (dataParser.readByte() &lt; <span class="number">41</span>) &#123;</span><br><span class="line">         <span class="built_in">this</span>.error = <span class="string">&quot;Authorization file is not for Cobalt Strike 4.1+&quot;</span>;</span><br><span class="line">         <span class="keyword">return</span>;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="type">int</span> <span class="variable">i1</span> <span class="operator">=</span> dataParser.readByte();</span><br><span class="line">      dataParser.readBytes(i1);</span><br><span class="line">      <span class="type">byte</span>[] bytes = dataParser.readBytes(dataParser.readByte());</span><br><span class="line">      <span class="keyword">if</span> (<span class="number">29999999</span> == int1) &#123;</span><br><span class="line">         <span class="built_in">this</span>.validto = <span class="string">&quot;forever&quot;</span>;</span><br><span class="line">         MudgeSanity.systemDetail(<span class="string">&quot;valid to&quot;</span>, <span class="string">&quot;perpetual&quot;</span>);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">         <span class="built_in">this</span>.validto = <span class="string">&quot;20&quot;</span> + int1;</span><br><span class="line">         MudgeSanity.systemDetail(<span class="string">&quot;valid to&quot;</span>, CommonUtils.formatDateAny(<span class="string">&quot;MMMMM d, YYYY&quot;</span>, <span class="built_in">this</span>.getExpirationDate()));</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="built_in">this</span>.valid = <span class="literal">true</span>;</span><br><span class="line">      MudgeSanity.systemDetail(<span class="string">&quot;id&quot;</span>, <span class="built_in">this</span>.watermark + <span class="string">&quot;&quot;</span>);</span><br><span class="line">      SleevedResource.Setup(bytes);   <span class="comment">//进入Setup这里</span></span><br><span class="line">   &#125; <span class="keyword">catch</span> (Exception var6) &#123;</span><br><span class="line">      MudgeSanity.logException(<span class="string">&quot;auth file parsing&quot;</span>, var6, <span class="literal">false</span>);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">Setup</span><span class="params">(<span class="type">byte</span>[] array)</span> &#123;</span><br><span class="line">   singleton = <span class="keyword">new</span> <span class="title class_">SleevedResource</span>(CommonUtils.readResource(<span class="string">&quot;resources/cobaltstrike.auth&quot;</span>));  <span class="comment">//所以我认为和cobaltstrike.auth有关</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>进入到<code>server.TeamServer.go</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">go</span><span class="params">()</span> &#123;</span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">ProfileEdits</span>(<span class="built_in">this</span>.c2profile);</span><br><span class="line">      <span class="built_in">this</span>.c2profile.addParameter(<span class="string">&quot;.watermark&quot;</span>, <span class="built_in">this</span>.auth.getWatermark());</span><br><span class="line">      <span class="built_in">this</span>.c2profile.addParameter(<span class="string">&quot;.self&quot;</span>, CommonUtils.readAndSumFi1e(TeamServer.class.getProtectionDomain().getCodeSource().getLocation().getPath()));</span><br><span class="line">    <span class="comment">//省略。。。</span></span><br><span class="line">     </span><br><span class="line">      <span class="keyword">if</span> (!ServerUtils.hasPublicStage(<span class="built_in">this</span>.resources)) &#123;</span><br><span class="line">         CommonUtils.print_warn(<span class="string">&quot;Woah! Your profile disables hosted payload stages. Payload staging won&#x27;t work.&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="type">SecureServerSocket</span> <span class="variable">var3</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SecureServerSocket</span>(<span class="built_in">this</span>.port);  <span class="comment">//new一个socks之类的</span></span><br><span class="line">      CommonUtils.print_good(<span class="string">&quot;Team server is up on &quot;</span> + <span class="built_in">this</span>.port);  <span class="comment">//打印port信息</span></span><br><span class="line">      CommonUtils.print_info(<span class="string">&quot;SHA256 hash of SSL cert is: &quot;</span> + var3.fingerprint());   <span class="comment">//打印sha256值</span></span><br><span class="line">      <span class="built_in">this</span>.resources.call(<span class="string">&quot;listeners.go&quot;</span>);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">         var3.acceptAndAuthenticate(<span class="built_in">this</span>.pass, <span class="keyword">new</span> <span class="title class_">PostAuthentication</span>() &#123;  <span class="comment">//进入认证</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">clientAuthenticated</span><span class="params">(Socket var1)</span> &#123;</span><br><span class="line">               <span class="keyword">try</span> &#123;</span><br><span class="line">                  var1.setSoTimeout(<span class="number">0</span>);</span><br><span class="line">                  <span class="type">TeamSocket</span> <span class="variable">var2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TeamSocket</span>(var1);</span><br><span class="line">                  (<span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">ManageUser</span>(var2, TeamServer.<span class="built_in">this</span>.resources, TeamServer.<span class="built_in">this</span>.calls), <span class="string">&quot;Manage: unauth&#x27;d user&quot;</span>)).start();</span><br><span class="line">               &#125; <span class="keyword">catch</span> (Exception var3) &#123;</span><br><span class="line">                  MudgeSanity.logException(<span class="string">&quot;Start client thread&quot;</span>, var3, <span class="literal">false</span>);</span><br><span class="line">               &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">         &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125; <span class="keyword">catch</span> (Exception var4) &#123;</span><br><span class="line">      MudgeSanity.logException(<span class="string">&quot;team server startup&quot;</span>, var4, <span class="literal">false</span>);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以在Debug的Console窗口看到输出的信息，和平时在命令行运行temserver的结果一样，之后进入登陆认证<code>var3.acceptAndAuthenticate()</code></li>
+</ul>
+<p><img src="/images/1031/1031-cs-2.png" alt="1031-cs-2"></p>
+<p>- </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Socket <span class="title function_">acceptAndAuthenticate</span><span class="params">(<span class="keyword">final</span> String var1, <span class="keyword">final</span> PostAuthentication var2)</span> &#123;</span><br><span class="line">   <span class="type">String</span> <span class="variable">var3</span> <span class="operator">=</span> <span class="string">&quot;unknown&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">final</span> <span class="type">Socket</span> <span class="variable">var4</span> <span class="operator">=</span> <span class="built_in">this</span>.server.accept();     <span class="comment">//client端Connect</span></span><br><span class="line">      var3 = var4.getInetAddress().getHostAddress();</span><br><span class="line">      (<span class="keyword">new</span> <span class="title class_">Thread</span>(<span class="keyword">new</span> <span class="title class_">Runnable</span>() &#123;</span><br><span class="line">         <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">var1x</span> <span class="operator">=</span> <span class="string">&quot;unknown&quot;</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">               var1x = var4.getInetAddress().getHostAddress();</span><br><span class="line">               <span class="keyword">if</span> (SecureServerSocket.<span class="built_in">this</span>.authenticate(var4, var1, var1x)) &#123;     <span class="comment">//登陆认证</span></span><br><span class="line">                  var2.clientAuthenticated(var4);</span><br><span class="line">                  <span class="keyword">return</span>;</span><br><span class="line">               &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception var4x) &#123;</span><br><span class="line">               MudgeSanity.logException(<span class="string">&quot;could not authenticate client from &quot;</span> + var1x, var4x, <span class="literal">false</span>);  <span class="comment">//报错，登陆失败</span></span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>final Socket var4 = this.server.accept();     //client端Connect</code></li>
+</ul>
+<p>到达这里需要登陆，然后teamserver端会对连接的host，port，password等进行认证，进入<code>authenticate</code>认证</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -XX:ParallelGCThreads=4 -XX:+AggressiveHeap -XX:+UseParallelGC -Duser.language=en -jar CobaltScrike_4.1_reverse.ja</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/1031/1031-cs-3.png" alt="1031-cs-3"></p>
+<ul>
+<li>在点击Connect后，会发现Teamserver可以调试了，但是Client端报<code>Read timed out</code>，但是我一直忽略这个，在teamserver端进行调试，想走完登陆验证的过程，</li>
+</ul>
+<p><img src="/images/1031/1031-cs-6.png" alt="1031-cs-6"></p>
+<p>然后就会 teamserver端出现，<code>Connect reset</code></p>
+<p><img src="/images/1031/1031-cs-4.png" alt="1031-cs-4"></p>
+<p><img src="E:\1nodes\images\1031-cs-5.png" alt="1031-cs-5"></p>
+<p><img src="/images/1031/1031-cs-7.png" alt="1031-cs-7"></p>
+<h3 id="Read-timed-out-和-Connect-reset错误原因"><a href="#Read-timed-out-和-Connect-reset错误原因" class="headerlink" title="Read timed out 和 Connect reset错误原因"></a><code>Read timed out</code> 和 <code>Connect reset</code>错误原因</h3><p>从<code>Read timed out</code>连接超时看，</p>
+<p>因为此时teamserver端我正在缓慢调试client端的连接信息，认证账号密码等是否正确，但是teamserver端认证太慢，所以client端 timed out 超时，而teamserver端又由于client端已经关闭，所以后面也报错，或者不能继续调试了。</p>
+<ul>
+<li>可以试试在client端点击connect后，迅速再teamserver端点击step over，一直点，然后client端就登陆成功了。</li>
+</ul>
+<p>这认证了我的想法</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/10/29/1029-cobaltstrike-beacon%E4%BB%8B%E7%BB%8D(%E4%B8%80)/" rel="prev" title="">
+      <i class="fa fa-chevron-left"></i> 
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cs-%E7%99%BB%E9%99%86%E9%80%9A%E4%BF%A1%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">cs 登陆通信分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#teamserver%E7%AB%AF"><span class="nav-number">2.1.</span> <span class="nav-text">teamserver端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Read-timed-out-%E5%92%8C-Connect-reset%E9%94%99%E8%AF%AF%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.2.</span> <span class="nav-text">Read timed out 和 Connect reset错误原因</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="hh"
+      src="/images/th.jpg">
+  <p class="site-author-name" itemprop="name">hh</p>
+  <div class="site-description" itemprop="description">hh</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/beautchen/beautchen.github.io" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;beautchen&#x2F;beautchen.github.io" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">hh</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
